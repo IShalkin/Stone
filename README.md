@@ -1,8 +1,8 @@
 # StoryWalker AI
 
-Your personal AI tour guide that adapts to you — not the other way around.
+Your Personal AI Tour Guide That Adapts to You
 
-## Screenshots
+StoryWalker AI creates a fully personalized tour guide experience powered by Google Gemini. Define your interests, preferred storytelling style, and topics to avoid — the AI adapts everything to match. Whether walking through a real city or exploring virtually through Google Street View, your guide tells stories that resonate with you personally.
 
 <p align="center">
   <img src="screenshots/main-interface.png" width="250" alt="Main Interface" />
@@ -10,67 +10,117 @@ Your personal AI tour guide that adapts to you — not the other way around.
   <img src="screenshots/street-view.png" width="250" alt="Street View Virtual Tour" />
 </p>
 
-## The Problem
+## Architecture (The Big Picture)
 
-Traditional tour guides are expensive, often unavailable, and rarely match your personal interests. Group tours follow rigid scripts that ignore what actually fascinates you. Audio guides drone on about dates and facts you'll forget in minutes. What if you could have a personal guide who knows exactly what you love, speaks in a style you enjoy, and is available anytime, anywhere?
+The application follows a client-side architecture where all AI processing happens through external APIs, keeping your data private and your API keys secure on your device.
 
-## The Solution
+```mermaid
+graph TB
+    subgraph "Client Application"
+        UI[React UI Layer]
+        STATE[State Management]
+        STORAGE[Local Storage]
+    end
+    
+    subgraph "AI Services Layer"
+        GEMINI[Google Gemini 2.5 Flash]
+        OPENROUTER[OpenRouter Models]
+        ELEVENLABS[ElevenLabs TTS]
+    end
+    
+    subgraph "Location Services"
+        GPS[Browser Geolocation]
+        STREETVIEW[Google Street View]
+        MAPS[Google Maps API]
+    end
+    
+    subgraph "Core Features"
+        PERSONAS[Custom Personas]
+        PROFILE[User Profile]
+        CHAT[Chat Interface]
+        LIVE[Live Voice Mode]
+    end
+    
+    UI --> STATE
+    STATE --> STORAGE
+    
+    UI --> CHAT
+    UI --> LIVE
+    UI --> PERSONAS
+    UI --> PROFILE
+    
+    CHAT --> GEMINI
+    CHAT --> OPENROUTER
+    LIVE --> GEMINI
+    
+    GEMINI --> |TTS| UI
+    ELEVENLABS --> |Premium TTS| UI
+    
+    GPS --> STATE
+    STREETVIEW --> UI
+    MAPS --> STATE
+```
 
-StoryWalker AI creates a fully personalized tour guide experience. You define your interests, preferred storytelling style, and what you want to avoid — the AI adapts everything to match. Whether you're walking through a real city or exploring virtually through Google Street View, your guide tells stories that resonate with you personally.
+### Layer Breakdown
 
-## Key Features
+**Client Application** is a React 19 SPA that runs entirely in the browser. All state is managed locally with React hooks, and user preferences are persisted to localStorage. No backend server required.
 
-### Deep Personalization
+**AI Services Layer** handles all intelligence. Google Gemini powers text generation, image creation, TTS, and live audio conversations. OpenRouter provides access to alternative models for different storytelling styles. ElevenLabs offers premium voice synthesis.
 
-The core of StoryWalker is personalization. Create a detailed profile describing your interests (history, architecture, dark legends, food culture, art), your preferred communication style (academic, humorous, brief, poetic), and topics you find boring. The AI uses this profile to tailor every response specifically for you.
+**Location Services** enable both virtual and real-world exploration. GPS provides your current location for context-aware stories. Google Street View allows virtual tours of any city. Google Maps API handles geocoding and place information.
 
-Beyond profiles, you can create entirely custom guide personas. Want a grumpy pirate who tells sea legends? A scholarly cat who explains architecture? An old friend who shares local gossip? Use the AI Builder to generate unique characters with distinct voices, personalities, and storytelling approaches. The included personas (Perfumer, Historian, Prisoner, Gossip, Cinematographer) are just starting examples — the real magic happens when you create guides that match your imagination.
-
-### Virtual Tours with Google Street View
-
-Don't need to travel to explore. StoryWalker integrates with Google Street View, allowing you to take virtual walks through any city in the world. Navigate streets, look around, and ask your personalized guide about anything you see. Plan future trips, revisit places you've been, or explore cities you may never visit in person — all with a guide who knows exactly what interests you.
-
-### Real-World Exploration
-
-When you're actually traveling, StoryWalker uses your GPS location to provide context-aware stories. Point your camera at a building, paste a photo, or simply ask about your surroundings. The AI fetches real-time information through Google Search and Maps to give you accurate, current details mixed with the storytelling style you prefer.
-
-### Voice Interaction
-
-Every response can be played as audio with persona-specific voices. In Live Mode, have a real-time conversation with your guide using your microphone — perfect for hands-free exploration while walking. Choose between built-in Gemini TTS voices or connect ElevenLabs for premium voice synthesis.
-
-### AI-Generated Visuals
-
-Your guide can generate images to illustrate stories — photorealistic shots of how places looked historically, or artistic interpretations of legends and atmospheres described in the narrative.
+**Core Features** include customizable AI personas with distinct personalities, user profiles that shape how stories are told, a chat interface for text interaction, and live voice mode for hands-free exploration.
 
 ## Tech Stack
 
-React 19 with TypeScript, Vite, Google Gemini 2.5 Flash (text, image generation, TTS, live audio), Lucide React icons, and Tailwind CSS.
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| Framework | React 19 | UI components and state management |
+| Language | TypeScript | Type-safe development |
+| Build Tool | Vite | Fast development and optimized builds |
+| AI Core | Google Gemini 2.5 Flash | Text, images, TTS, live audio, search grounding |
+| Alternative AI | OpenRouter | Access to Mythomax, Llama, WizardLM, etc. |
+| Voice | ElevenLabs | Premium voice synthesis |
+| Maps | Google Maps + Street View | Virtual tours and location services |
+| Icons | Lucide React | Consistent icon system |
+| Styling | Tailwind CSS | Utility-first styling |
 
-## Getting Started
+### Why This Stack?
 
-This is an open-source project with no hardcoded API keys. All API keys are entered by you through the in-app Settings modal at runtime — your keys stay on your device and are never sent anywhere except to the respective API providers.
+This stack was chosen to provide **maximum privacy** with **zero backend costs**. React 19 enables a fully client-side application where API keys never leave your device. Google Gemini offers the best price-to-performance ratio for multimodal AI (text, images, audio, vision) in a single API. Vite ensures fast development iteration and optimized production builds.
 
-### API Keys (All Entered in Settings)
+## User Flow
 
-**Required:**
-- **Gemini API Key** — Powers all core AI features: text generation, image generation, text-to-speech, live audio conversations, and Google Search grounding. Get it free from [Google AI Studio](https://ai.google.dev/).
+A typical session with StoryWalker AI:
 
-**Optional:**
-- **Google Maps API Key** — Enables Google Street View for virtual tours. Without it, the app falls back to OpenStreetMap (no Street View). Requires Maps JavaScript API, Street View Static API, and Geocoding API enabled in Google Cloud Console.
-- **OpenRouter API Key** — Access alternative AI models (Mythomax, Llama, WizardLM, etc.) for different storytelling styles.
-- **ElevenLabs API Key** — Premium voice synthesis with more realistic voices. Without it, the app uses built-in Gemini TTS.
+1. **Setup** - Enter your Gemini API key in Settings (one-time)
+2. **Personalize** - Create a traveler profile describing your interests and preferred storytelling style
+3. **Choose Guide** - Select from built-in personas or create custom characters with unique personalities
+4. **Explore** - Use GPS for real-world tours or Google Street View for virtual exploration
+5. **Interact** - Ask questions via text, voice, or by sharing photos of what you see
+6. **Listen** - Hear responses in your guide's unique voice with optional AI-generated visuals
 
-### Option 1: Docker Compose (Recommended)
+## Installation via Docker Compose
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Gemini API key (free from [Google AI Studio](https://ai.google.dev/))
+
+### Quick Start
 
 ```bash
+# Clone the repository
 git clone https://github.com/IShalkin/Stone.git
 cd Stone
+
+# Start the application
 docker-compose up -d
 ```
 
 The app will be available at `http://localhost:3000`. Open Settings (gear icon) and enter your API keys.
 
-### Option 2: Manual Installation
+### Manual Installation
 
 Prerequisites: Node.js v18 or higher
 
@@ -81,16 +131,37 @@ npm install
 npm run dev
 ```
 
-Open the app in your browser and go to Settings (gear icon) to enter your API keys.
+## API Keys Configuration
+
+All API keys are entered through the in-app Settings modal. Your keys stay on your device and are never sent anywhere except to the respective API providers.
+
+| API Key | Required | Purpose | Get It |
+|---------|----------|---------|--------|
+| Gemini | Yes | Core AI features | [Google AI Studio](https://ai.google.dev/) |
+| Google Maps | No | Street View virtual tours | [Google Cloud Console](https://console.cloud.google.com/) |
+| OpenRouter | No | Alternative AI models | [OpenRouter](https://openrouter.ai/) |
+| ElevenLabs | No | Premium voice synthesis | [ElevenLabs](https://elevenlabs.io/) |
+
+## Key Features
+
+**Deep Personalization** - Create detailed profiles describing your interests (history, architecture, legends, food, art) and communication preferences (academic, humorous, brief, poetic). Build custom guide personas with unique voices and personalities.
+
+**Virtual Tours** - Explore any city through Google Street View integration. Navigate streets, look around, and ask your guide about anything you see.
+
+**Real-World Mode** - GPS-powered location awareness with camera support. Point at buildings, paste photos, or ask about your surroundings.
+
+**Voice Interaction** - Every response can be played as audio. Live Mode enables real-time voice conversations for hands-free exploration.
+
+**AI Visuals** - Your guide can generate images showing historical views or artistic interpretations of stories.
 
 ## Multi-Language Support
 
 Interface and AI responses available in English, Russian, and Czech.
 
-## Permissions
+## Browser Permissions
 
-The app may request browser permissions for geolocation (location-based stories), camera (photo capture), and microphone (Live mode voice interaction).
+The app may request: geolocation (location-based stories), camera (photo capture), microphone (Live mode voice).
 
 ## License
 
-This project is licensed under [CC BY-NC 4.0](LICENSE) — free for personal and non-commercial use only.
+[CC BY-NC 4.0](LICENSE) — free for personal and non-commercial use only.
